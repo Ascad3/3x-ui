@@ -326,6 +326,18 @@ func (t *Tgbot) answerCommand(message *telego.Message, chatId int64, isAdmin boo
 		} else {
 			handleUnknownCommand()
 		}
+	case "broadcast": // Новая команда для рассылки
+        if isAdmin {
+            if len(commandArgs) > 0 {
+                broadcastMessage := strings.Join(commandArgs, " ")
+                t.broadcastToAllUsers(broadcastMessage)
+                msg += t.I18nBot("tgbot.messages.broadcastSent")
+            } else {
+                msg += t.I18nBot("tgbot.messages.broadcastEmpty")
+            }
+        } else {
+            handleUnknownCommand()
+        }
 	default:
 		handleUnknownCommand()
 	}
@@ -1850,4 +1862,26 @@ func (t *Tgbot) editMessageTgBot(chatId int64, messageID int, text string, inlin
 	}
 }
 
+func (t *Tgbot) broadcastToAllUsers(message string) {
+    // Получаем список всех пользователей
+    users, err := t.inboundService.GetAllUsers()
+    if err != nil {
+        logger.Warning("Failed to get users for broadcast:", err)
+        return
+    }
 
+    // Отправляем сообщение каждому пользователю
+    for _, user := range users {
+        t.SendMsgToTgbot(user.ChatID, message)
+    }
+}
+
+func (s *InboundService) GetAllUsers() ([]model.User, error) {
+    var users []model.User
+    // Здесь выполняется запрос к базе данных для получения всех пользователей
+    err := database.DB.Find(&users).Error
+    if err != nil {
+        return nil, err
+    }
+    return users, nil
+}
