@@ -305,6 +305,19 @@ func (t *Tgbot) answerCommand(message *telego.Message, chatId int64, isAdmin boo
 		} else {
 			handleUnknownCommand()
 		}
+	case "broadcast":
+		onlyMessage = true
+		if isAdmin {
+			if len(commandArgs) == 0 {
+				msg += "Используйте: /broadcast <текст сообщения>"
+			} else {
+				broadcastMessage := strings.Join(commandArgs, " ")
+				t.BroadcastMessage(broadcastMessage)
+				msg += "Сообщение отправлено всем пользователям."
+			}
+		} else {
+			msg += "У вас нет прав на выполнение этой команды."
+		}
 	case "restart":
 		onlyMessage = true
 		if isAdmin {
@@ -1847,37 +1860,6 @@ func (t *Tgbot) editMessageTgBot(chatId int64, messageID int, text string, inlin
 	}
 	if _, err := bot.EditMessageText(&params); err != nil {
 		logger.Warning(err)
-	}
-}
-
-func (t *Tgbot) answerCommand(message *telego.Message, chatId int64, isAdmin bool) {
-	msg, onlyMessage := "", false
-	command, _, commandArgs := tu.ParseCommand(message.Text)
-
-	handleUnknownCommand := func() {
-		msg += t.I18nBot("tgbot.commands.unknown")
-	}
-
-	switch command {
-	case "broadcast":
-		onlyMessage = true
-		if isAdmin {
-			if len(commandArgs) == 0 {
-				msg += "Используйте: /broadcast <текст сообщения>"
-			} else {
-				broadcastMessage := strings.Join(commandArgs, " ")
-				t.BroadcastMessage(broadcastMessage)
-				msg += "Сообщение отправлено всем пользователям."
-			}
-		} else {
-			msg += "У вас нет прав на выполнение этой команды."
-		}
-	default:
-		handleUnknownCommand()
-	}
-
-	if msg != "" {
-		t.sendResponse(chatId, msg, onlyMessage, isAdmin)
 	}
 }
 
