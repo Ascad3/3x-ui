@@ -305,19 +305,6 @@ func (t *Tgbot) answerCommand(message *telego.Message, chatId int64, isAdmin boo
 		} else {
 			handleUnknownCommand()
 		}
-	case "broadcast":
-		onlyMessage = true
-		if isAdmin {
-			if len(commandArgs) == 0 {
-				msg += "Используйте: /broadcast <текст сообщения>"
-			} else {
-				broadcastMessage := strings.Join(commandArgs, " ")
-				t.BroadcastMessage(broadcastMessage)
-				msg += "Сообщение отправлено всем пользователям."
-			}
-		} else {
-			msg += "У вас нет прав на выполнение этой команды."
-		}
 	case "restart":
 		onlyMessage = true
 		if isAdmin {
@@ -1863,17 +1850,4 @@ func (t *Tgbot) editMessageTgBot(chatId int64, messageID int, text string, inlin
 	}
 }
 
-// Функция рассылки сообщений всем пользователям
-func (t *Tgbot) BroadcastMessage(message string) {
-	users, err := t.inboundService.GetAllUsers()
-	if err != nil {
-		logger.Warning("Ошибка при получении списка пользователей:", err)
-		return
-	}
-
-	for _, user := range users {
-		t.SendMsgToTgbot(user.TgID, message)
-		time.Sleep(500 * time.Millisecond) // Задержка, чтобы избежать спама API Telegram
-	}
-}
 
